@@ -9,7 +9,7 @@ snapshots, ZIP-like portable archiving, chunk-level deduplication, a
 read-only virtual mount, and a push/pull remote model that never requires
 opening a network port.
 
-The golden rule: **PAX stays usable without PAX.** `pax extract` always
+**PAX stays usable without PAX.** `pax extract` always
 produces plain, ordinary files with zero lock-in, and the on-disk format is
 fully documented in [docs/FORMAT.md](docs/FORMAT.md).
 
@@ -29,8 +29,8 @@ pax pack . -o my-project.pax
 
 ## Install
 
-- **Windows**: `InstallScripts\install.ps1`
-- **macOS / Linux**: `InstallScripts/install.sh`
+- **Windows**: `irm https://raw.githubusercontent.com/SH-ENTERTAINMENT/pax/refs/heads/main/InstallScripts/install.ps1 | iex`
+- **macOS / Linux**: `curl -fsSL https://raw.githubusercontent.com/SH-ENTERTAINMENT/pax/refs/heads/main/InstallScripts/install.sh | sh`
 
 Both scripts download the correct release binary from GitHub Releases,
 verify its SHA-256 checksum, install it to a per-user location, and add that
