@@ -29,8 +29,13 @@ pax pack . -o my-project.pax
 
 ## Install
 
-- **Windows**: ```irm https://raw.githubusercontent.com/SH-ENTERTAINMENT/pax/refs/heads/main/InstallScripts/install.ps1 | iex```
-- **macOS / Linux**: ```curl -fsSL https://raw.githubusercontent.com/SH-ENTERTAINMENT/pax/refs/heads/main/InstallScripts/install.sh | sh```
+- **Windows**: ```
+  irm https://raw.githubusercontent.com/SH-ENTERTAINMENT/pax/refs/heads/main/InstallScripts/install.ps1 | iex
+  ```
+  
+- **macOS / Linux**: ```
+  curl -fsSL https://raw.githubusercontent.com/SH-ENTERTAINMENT/pax/refs/heads/main/InstallScripts/install.sh | sh
+```
 
 Both scripts download the correct release binary from GitHub Releases,
 verify its SHA-256 checksum, install it to a per-user location, and add that
