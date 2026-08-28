@@ -6,6 +6,7 @@ PAX_REPO_NAME="pax"
 PAX_INSTALL_DIR="${PAX_INSTALL_DIR:-$HOME/.pax/bin}"
 
 info() { printf '[pax] %s\n' "$1"; }
+warn() { printf '[pax] warning: %s\n' "$1" >&2; }
 fail() { printf '[pax] error: %s\n' "$1" >&2; exit 1; }
 
 detect_os() {
@@ -26,6 +27,43 @@ detect_arch() {
 
 require_cmd() {
     command -v "$1" >/dev/null 2>&1 || fail "required command '$1' was not found"
+}
+
+fuse3_install_hint() {
+    if command -v apt-get >/dev/null 2>&1; then
+        echo "sudo apt-get install -y libfuse3-3"
+    elif command -v dnf >/dev/null 2>&1; then
+        echo "sudo dnf install -y fuse3-libs"
+    elif command -v pacman >/dev/null 2>&1; then
+        echo "sudo pacman -S --noconfirm fuse3"
+    elif command -v zypper >/dev/null 2>&1; then
+        echo "sudo zypper install -y libfuse3-3"
+    elif command -v apk >/dev/null 2>&1; then
+        echo "sudo apk add fuse3-libs"
+    else
+        echo "install libfuse3 (or fuse3) using your distribution's package manager"
+    fi
+}
+
+check_runtime_deps() {
+    binary="$1"
+    [ "$OS_TRIPLE" = "unknown-linux-gnu" ] || return 0
+    command -v ldd >/dev/null 2>&1 || return 0
+
+    missing="$(ldd "$binary" 2>/dev/null | grep "not found" || true)"
+    [ -n "$missing" ] || return 0
+
+    warn "pax was linked against shared libraries that are missing on this system:"
+    printf '%s\n' "$missing" | while IFS= read -r line; do
+        printf '[pax]   %s\n' "$line"
+    done
+
+    if printf '%s' "$missing" | grep -q "libfuse3"; then
+        warn "libfuse3 is required for 'pax mount' / 'pax unmount'."
+        warn "install it with: $(fuse3_install_hint)"
+    fi
+
+    warn "pax will not run correctly until the missing libraries above are installed."
 }
 
 require_cmd curl
@@ -72,6 +110,8 @@ info "installing to ${PAX_INSTALL_DIR}..."
 mkdir -p "$PAX_INSTALL_DIR"
 chmod +x "$WORK_DIR/pax"
 mv "$WORK_DIR/pax" "$PAX_INSTALL_DIR/pax"
+
+check_runtime_deps "$PAX_INSTALL_DIR/pax"
 
 add_path_line() {
     profile_file="$1"
