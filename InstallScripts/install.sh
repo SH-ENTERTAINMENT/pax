@@ -30,8 +30,7 @@ require_cmd() {
     command -v "$1" >/dev/null 2>&1 || fail "required command '$1' was not found"
 }
 
-# Ask the user a yes/no question, reading from the controlling terminal so
-# this still works when the script is piped in via `curl ... | sh`.
+
 confirm() {
     prompt="$1"
     if [ -r /dev/tty ]; then
@@ -98,6 +97,17 @@ auto_install_fuse3() {
     return 1
 }
 
+refresh_ld_cache() {
+    command -v ldconfig >/dev/null 2>&1 || return 0
+    if [ "$(id -u)" -eq 0 ]; then
+        ldconfig 2>/dev/null || true
+    elif command -v sudo >/dev/null 2>&1; then
+        # Reuses the sudo session opened moments ago by auto_install_fuse3,
+        # so this normally does not prompt for a password again.
+        sudo ldconfig 2>/dev/null || true
+    fi
+}
+
 check_runtime_deps() {
     binary="$1"
     [ "$OS_TRIPLE" = "unknown-linux-gnu" ] || return 0
@@ -110,6 +120,7 @@ check_runtime_deps() {
         warn "libfuse3 is required for 'pax mount' / 'pax unmount' but is not installed."
         if auto_install_fuse3; then
             info "libfuse3 installed successfully."
+            refresh_ld_cache
             missing="$(ldd "$binary" 2>/dev/null | grep "not found" || true)"
         else
             warn "could not install libfuse3 automatically."
@@ -123,6 +134,7 @@ check_runtime_deps() {
     printf '%s\n' "$missing" | while IFS= read -r line; do
         printf '[pax]   %s\n' "$line"
     done
+    warn "if the library is installed but still not found, try: sudo ldconfig"
 }
 
 require_cmd curl
