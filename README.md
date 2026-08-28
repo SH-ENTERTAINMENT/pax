@@ -29,7 +29,7 @@ opening a network port.
 ### macOS / Linux
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/SH-ENTERTAINMENT/pax/main/InstallScripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/SH-ENTERTAINMENT/pax/main/InstallScripts/install.sh | sudo sh
 ```
 
 ### Windows (PowerShell)
