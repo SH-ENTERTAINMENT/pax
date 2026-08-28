@@ -42,14 +42,6 @@ Both installers respect the `PAX_INSTALL_DIR` environment variable if you
 want to install somewhere other than the default per-user location.
 
 
-
-| Status | Meaning |
-|:---:|---|
-| 🔵 `[pax]` | informational step |
-| 🟡 `[pax]` | warning — install continues, but check the message |
-| 🔴 `[pax] error:` | fatal — the install stopped |
-| 🟢 `[pax]` | success |
-
 ---
 
 ## ⚡ Quickstart
