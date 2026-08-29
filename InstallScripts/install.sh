@@ -3,8 +3,15 @@ set -eu
 
 PAX_REPO_OWNER="SH-ENTERTAINMENT"
 PAX_REPO_NAME="pax"
-PAX_INSTALL_DIR="${PAX_INSTALL_DIR:-$HOME/.pax/bin}"
 PAX_SKIP_FUSE_INSTALL="${PAX_SKIP_FUSE_INSTALL:-0}"
+
+if [ -n "${PAX_INSTALL_DIR:-}" ]; then
+    :
+elif [ "$(id -u)" -eq 0 ]; then
+    PAX_INSTALL_DIR="/usr/local/lib/pax/bin"
+else
+    PAX_INSTALL_DIR="$HOME/.pax/bin"
+fi
 
 info() { printf '[pax] %s\n' "$1"; }
 warn() { printf '[pax] warning: %s\n' "$1" >&2; }
@@ -164,6 +171,9 @@ info "installing to ${PAX_INSTALL_DIR}..."
 mkdir -p "$PAX_INSTALL_DIR"
 chmod +x "$WORK_DIR/pax"
 mv "$WORK_DIR/pax" "$PAX_INSTALL_DIR/pax"
+if [ "$(id -u)" -eq 0 ]; then
+    chmod -R a+rX "$PAX_INSTALL_DIR" 2>/dev/null || true
+fi
 
 check_runtime_deps "$PAX_INSTALL_DIR/pax"
 
