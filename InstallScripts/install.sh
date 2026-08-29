@@ -167,23 +167,62 @@ mv "$WORK_DIR/pax" "$PAX_INSTALL_DIR/pax"
 
 check_runtime_deps "$PAX_INSTALL_DIR/pax"
 
-add_path_line() {
+try_symlink_to_shared_bin() {
+    for dir in /usr/local/bin "$HOME/.local/bin"; do
+        [ -d "$dir" ] || mkdir -p "$dir" 2>/dev/null || continue
+        [ -w "$dir" ] || continue
+        ln -sf "$PAX_INSTALL_DIR/pax" "$dir/pax" 2>/dev/null || continue
+        info "linked pax into $dir (already on most shells' PATH)"
+        return 0
+    done
+    return 1
+}
+
+add_posix_path_line() {
     profile_file="$1"
     line="export PATH=\"${PAX_INSTALL_DIR}:\$PATH\""
-    [ -f "$profile_file" ] || return 0
+    mkdir -p "$(dirname "$profile_file")" 2>/dev/null || true
+    touch "$profile_file" 2>/dev/null || return 0
     if ! grep -qF "$PAX_INSTALL_DIR" "$profile_file" 2>/dev/null; then
-        printf '\n# Added by the pax installer\n%s\n' "$line" >> "$profile_file"
+        printf '\n%s\n' "$line" >> "$profile_file"
         info "updated $profile_file"
     fi
 }
 
-info "pax will be added to your PATH automatically in your shell profile."
-CURRENT_SHELL="$(basename "${SHELL:-sh}")"
-case "$CURRENT_SHELL" in
-    zsh) add_path_line "$HOME/.zshrc" ;;
-    bash) add_path_line "$HOME/.bashrc"; add_path_line "$HOME/.bash_profile" ;;
-    *) add_path_line "$HOME/.profile" ;;
-esac
+add_fish_path_line() {
+    profile_file="$1"
+    line="fish_add_path ${PAX_INSTALL_DIR}"
+    mkdir -p "$(dirname "$profile_file")" 2>/dev/null || true
+    touch "$profile_file" 2>/dev/null || return 0
+    if ! grep -qF "$PAX_INSTALL_DIR" "$profile_file" 2>/dev/null; then
+        printf '\n%s\n' "$line" >> "$profile_file"
+        info "updated $profile_file"
+    fi
+}
+
+add_csh_path_line() {
+    profile_file="$1"
+    line="setenv PATH \"${PAX_INSTALL_DIR}:\$PATH\""
+    mkdir -p "$(dirname "$profile_file")" 2>/dev/null || true
+    touch "$profile_file" 2>/dev/null || return 0
+    if ! grep -qF "$PAX_INSTALL_DIR" "$profile_file" 2>/dev/null; then
+        printf '\n%s\n' "$line" >> "$profile_file"
+        info "updated $profile_file"
+    fi
+}
+
+if try_symlink_to_shared_bin; then
+    :
+else
+    warn "could not write to /usr/local/bin or ~/.local/bin, falling back to shell profile files"
+    add_posix_path_line "$HOME/.profile"
+    add_posix_path_line "$HOME/.bashrc"
+    add_posix_path_line "$HOME/.bash_profile"
+    add_posix_path_line "$HOME/.zshrc"
+    add_fish_path_line "$HOME/.config/fish/config.fish"
+    add_csh_path_line "$HOME/.cshrc"
+    add_csh_path_line "$HOME/.tcshrc"
+fi
 
 info "pax v${VERSION} installed successfully."
 info "restart your terminal, or run: export PATH=\"${PAX_INSTALL_DIR}:\$PATH\""
